@@ -70,6 +70,7 @@ return [
     */
 
     'commands' => [
-        //
+        'queue:forget',
+        'route:list',
     ],
 ];
