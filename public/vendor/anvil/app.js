@@ -1870,7 +1870,7 @@ function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
     loadEntries: function loadEntries(after) {
       var _this3 = this;
 
-      axios__WEBPACK_IMPORTED_MODULE_2___default.a.post(Anvil.basePath + '/anvil-api/' + this.resource + '?tag=' + this.tag + '&before=' + this.lastEntryIndex + '&take=' + this.entriesPerRequest + '&family_hash=' + this.familyHash).then(function (response) {
+      axios__WEBPACK_IMPORTED_MODULE_2___default.a.get(Anvil.basePath + '/anvil-api/' + this.resource + '?tag=' + this.tag + '&before=' + this.lastEntryIndex + '&take=' + this.entriesPerRequest + '&family_hash=' + this.familyHash).then(function (response) {
         _this3.lastEntryIndex = response.data.entries.length ? lodash__WEBPACK_IMPORTED_MODULE_1___default.a.last(response.data.entries).sequence : _this3.lastEntryIndex;
         _this3.hasMoreEntries = response.data.entries.length >= _this3.entriesPerRequest;
 
@@ -2155,8 +2155,23 @@ __webpack_require__.r(__webpack_exports__);
   data: function data() {
     return {
       entry: null,
+      form: {},
       currentTab: 'form'
     };
+  },
+  methods: {
+    handleSubmit: function handleSubmit(evt) {
+      var url = window.Anvil.routes.runs_store.replace('%command%', this.entry.content.command);
+      axios__WEBPACK_IMPORTED_MODULE_0___default()({
+        method: 'post',
+        url: url,
+        data: this.form
+      }).then(function (response) {
+        this.alertSuccess(response.data.entry.output);
+      }.bind(this))["catch"](function (error) {
+        console.error(error);
+      });
+    }
   }
 });
 
@@ -44149,7 +44164,7 @@ var render = function() {
                                     },
                                     [
                                       _vm._v(
-                                        "\n                            View Command\n                        "
+                                        "\n                                View Command\n                            "
                                       )
                                     ]
                                   )
@@ -44205,7 +44220,7 @@ var render = function() {
                         {
                           staticClass: "table-fit font-weight-bold align-middle"
                         },
-                        [_vm._v("Name")]
+                        [_vm._v("\n                    Name\n                ")]
                       ),
                       _vm._v(" "),
                       _c("td", { staticClass: "align-middle" }, [
@@ -44302,7 +44317,9 @@ var render = function() {
             return [
               _c("td", { attrs: { title: slotProps.entry.content.command } }, [
                 _vm._v(
-                  _vm._s(_vm.truncate(slotProps.entry.content.command, 90))
+                  "\n            " +
+                    _vm._s(_vm.truncate(slotProps.entry.content.command, 90)) +
+                    "\n        "
                 )
               ]),
               _vm._v(" "),
@@ -44552,7 +44569,7 @@ var render = function() {
                         name: "show",
                         rawName: "v-show",
                         value: _vm.currentTab == "arguments",
-                        expression: "currentTab=='arguments'"
+                        expression: "currentTab == 'arguments'"
                       }
                     ],
                     staticClass: "code-bg p-4 mb-0 text-white"
@@ -44573,7 +44590,7 @@ var render = function() {
                         name: "show",
                         rawName: "v-show",
                         value: _vm.currentTab == "options",
-                        expression: "currentTab=='options'"
+                        expression: "currentTab == 'options'"
                       }
                     ],
                     staticClass: "code-bg p-4 mb-0 text-white"
@@ -44594,7 +44611,7 @@ var render = function() {
                         name: "show",
                         rawName: "v-show",
                         value: _vm.currentTab == "form-definition",
-                        expression: "currentTab=='form-definition'"
+                        expression: "currentTab == 'form-definition'"
                       }
                     ],
                     staticClass: "code-bg p-4 mb-0 text-white"
@@ -44615,7 +44632,7 @@ var render = function() {
                         name: "show",
                         rawName: "v-show",
                         value: _vm.currentTab == "form",
-                        expression: "currentTab=='form'"
+                        expression: "currentTab == 'form'"
                       }
                     ],
                     staticClass: "p-4 mb-0"
@@ -44623,6 +44640,14 @@ var render = function() {
                   [
                     _c(
                       "form",
+                      {
+                        on: {
+                          submit: function($event) {
+                            $event.preventDefault()
+                            return _vm.handleSubmit($event)
+                          }
+                        }
+                      },
                       [
                         _vm._l(slotProps.entry.content.form, function(field) {
                           return [
@@ -44633,6 +44658,14 @@ var render = function() {
                                   ]),
                                   _vm._v(" "),
                                   _c("input", {
+                                    directives: [
+                                      {
+                                        name: "model",
+                                        rawName: "v-model",
+                                        value: _vm.form[field.name],
+                                        expression: "form[field.name]"
+                                      }
+                                    ],
                                     staticClass: "form-control",
                                     attrs: {
                                       type: "text",
@@ -44640,7 +44673,19 @@ var render = function() {
                                       name: field.name,
                                       required: field.required
                                     },
-                                    domProps: { value: field.default }
+                                    domProps: { value: _vm.form[field.name] },
+                                    on: {
+                                      input: function($event) {
+                                        if ($event.target.composing) {
+                                          return
+                                        }
+                                        _vm.$set(
+                                          _vm.form,
+                                          field.name,
+                                          $event.target.value
+                                        )
+                                      }
+                                    }
                                   }),
                                   _vm._v(" "),
                                   field.description
@@ -44656,8 +44701,54 @@ var render = function() {
                             field.type == "option" && !field.acceptValue
                               ? _c("div", { staticClass: "form-check" }, [
                                   _c("input", {
+                                    directives: [
+                                      {
+                                        name: "model",
+                                        rawName: "v-model",
+                                        value: _vm.form[field.name],
+                                        expression: "form[field.name]"
+                                      }
+                                    ],
                                     staticClass: "form-check-input",
-                                    attrs: { type: "checkbox", id: field.name }
+                                    attrs: { type: "checkbox", id: field.name },
+                                    domProps: {
+                                      checked: Array.isArray(
+                                        _vm.form[field.name]
+                                      )
+                                        ? _vm._i(_vm.form[field.name], null) >
+                                          -1
+                                        : _vm.form[field.name]
+                                    },
+                                    on: {
+                                      change: function($event) {
+                                        var $$a = _vm.form[field.name],
+                                          $$el = $event.target,
+                                          $$c = $$el.checked ? true : false
+                                        if (Array.isArray($$a)) {
+                                          var $$v = null,
+                                            $$i = _vm._i($$a, $$v)
+                                          if ($$el.checked) {
+                                            $$i < 0 &&
+                                              _vm.$set(
+                                                _vm.form,
+                                                field.name,
+                                                $$a.concat([$$v])
+                                              )
+                                          } else {
+                                            $$i > -1 &&
+                                              _vm.$set(
+                                                _vm.form,
+                                                field.name,
+                                                $$a
+                                                  .slice(0, $$i)
+                                                  .concat($$a.slice($$i + 1))
+                                              )
+                                          }
+                                        } else {
+                                          _vm.$set(_vm.form, field.name, $$c)
+                                        }
+                                      }
+                                    }
                                   }),
                                   _vm._v(" "),
                                   _c(
@@ -44687,7 +44778,11 @@ var render = function() {
                             staticClass: "btn btn-primary",
                             attrs: { type: "submit" }
                           },
-                          [_vm._v("Run")]
+                          [
+                            _vm._v(
+                              "\n                            Run\n                        "
+                            )
+                          ]
                         )
                       ],
                       2
@@ -59773,39 +59868,39 @@ __webpack_require__(/*! bootstrap */ "./node_modules/bootstrap/dist/js/bootstrap
 var token = document.head.querySelector('meta[name="csrf-token"]');
 
 if (token) {
-  axios__WEBPACK_IMPORTED_MODULE_2___default.a.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+  axios__WEBPACK_IMPORTED_MODULE_2___default.a.defaults.headers.common["X-CSRF-TOKEN"] = token.content;
 }
 
 vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vue_router__WEBPACK_IMPORTED_MODULE_4__["default"]);
 window.Popper = __webpack_require__(/*! popper.js */ "./node_modules/popper.js/dist/esm/popper.js")["default"];
 moment_timezone__WEBPACK_IMPORTED_MODULE_6___default.a.tz.setDefault(window.Anvil.timezone);
-window.Anvil.basePath = '/' + window.Anvil.path;
-var routerBasePath = window.Anvil.basePath + '/';
+window.Anvil.basePath = "/" + window.Anvil.path;
+var routerBasePath = window.Anvil.basePath + "/";
 
-if (window.Anvil.path === '' || window.Anvil.path === '/') {
-  routerBasePath = '/';
-  window.Anvil.basePath = '';
+if (window.Anvil.path === "" || window.Anvil.path === "/") {
+  routerBasePath = "/";
+  window.Anvil.basePath = "";
 }
 
 var router = new vue_router__WEBPACK_IMPORTED_MODULE_4__["default"]({
   routes: _routes__WEBPACK_IMPORTED_MODULE_3__["default"],
-  mode: 'history',
+  mode: "history",
   base: routerBasePath
 });
-vue__WEBPACK_IMPORTED_MODULE_0___default.a.component('vue-json-pretty', vue_json_pretty__WEBPACK_IMPORTED_MODULE_5___default.a);
-vue__WEBPACK_IMPORTED_MODULE_0___default.a.component('index-screen', __webpack_require__(/*! ./components/IndexScreen.vue */ "./resources/js/components/IndexScreen.vue")["default"]);
-vue__WEBPACK_IMPORTED_MODULE_0___default.a.component('preview-screen', __webpack_require__(/*! ./components/PreviewScreen.vue */ "./resources/js/components/PreviewScreen.vue")["default"]);
-vue__WEBPACK_IMPORTED_MODULE_0___default.a.component('alert', __webpack_require__(/*! ./components/Alert.vue */ "./resources/js/components/Alert.vue")["default"]);
+vue__WEBPACK_IMPORTED_MODULE_0___default.a.component("vue-json-pretty", vue_json_pretty__WEBPACK_IMPORTED_MODULE_5___default.a);
+vue__WEBPACK_IMPORTED_MODULE_0___default.a.component("index-screen", __webpack_require__(/*! ./components/IndexScreen.vue */ "./resources/js/components/IndexScreen.vue")["default"]);
+vue__WEBPACK_IMPORTED_MODULE_0___default.a.component("preview-screen", __webpack_require__(/*! ./components/PreviewScreen.vue */ "./resources/js/components/PreviewScreen.vue")["default"]);
+vue__WEBPACK_IMPORTED_MODULE_0___default.a.component("alert", __webpack_require__(/*! ./components/Alert.vue */ "./resources/js/components/Alert.vue")["default"]);
 vue__WEBPACK_IMPORTED_MODULE_0___default.a.mixin(_base__WEBPACK_IMPORTED_MODULE_1__["default"]);
 new vue__WEBPACK_IMPORTED_MODULE_0___default.a({
-  el: '#anvil',
+  el: "#anvil",
   router: router,
   data: function data() {
     return {
       alert: {
         type: null,
         autoClose: 0,
-        message: '',
+        message: "",
         confirmationProceed: null,
         confirmationCancel: null
       }
@@ -59852,35 +59947,35 @@ __webpack_require__.r(__webpack_exports__);
      * Show the time ago format for the given time.
      */
     timeAgo: function timeAgo(time) {
-      moment_timezone__WEBPACK_IMPORTED_MODULE_1___default.a.updateLocale('en', {
+      moment_timezone__WEBPACK_IMPORTED_MODULE_1___default.a.updateLocale("en", {
         relativeTime: {
-          future: 'in %s',
-          past: '%s ago',
+          future: "in %s",
+          past: "%s ago",
           s: function s(number) {
-            return number + 's ago';
+            return number + "s ago";
           },
-          ss: '%ds ago',
-          m: '1m ago',
-          mm: '%dm ago',
-          h: '1h ago',
-          hh: '%dh ago',
-          d: '1d ago',
-          dd: '%dd ago',
-          M: 'a month ago',
-          MM: '%d months ago',
-          y: 'a year ago',
-          yy: '%d years ago'
+          ss: "%ds ago",
+          m: "1m ago",
+          mm: "%dm ago",
+          h: "1h ago",
+          hh: "%dh ago",
+          d: "1d ago",
+          dd: "%dd ago",
+          M: "a month ago",
+          MM: "%d months ago",
+          y: "a year ago",
+          yy: "%d years ago"
         }
       });
-      var secondsElapsed = moment_timezone__WEBPACK_IMPORTED_MODULE_1___default()().diff(time, 'seconds');
-      var dayStart = moment_timezone__WEBPACK_IMPORTED_MODULE_1___default()('2018-01-01').startOf('day').seconds(secondsElapsed);
+      var secondsElapsed = moment_timezone__WEBPACK_IMPORTED_MODULE_1___default()().diff(time, "seconds");
+      var dayStart = moment_timezone__WEBPACK_IMPORTED_MODULE_1___default()("2018-01-01").startOf("day").seconds(secondsElapsed);
 
       if (secondsElapsed > 300) {
         return moment_timezone__WEBPACK_IMPORTED_MODULE_1___default()(time).fromNow(true);
       } else if (secondsElapsed < 60) {
-        return dayStart.format('s') + 's ago';
+        return dayStart.format("s") + "s ago";
       } else {
-        return dayStart.format('m:ss') + 'm ago';
+        return dayStart.format("m:ss") + "m ago";
       }
     },
 
@@ -59888,7 +59983,7 @@ __webpack_require__.r(__webpack_exports__);
      * Show the time in local time.
      */
     localTime: function localTime(time) {
-      return moment_timezone__WEBPACK_IMPORTED_MODULE_1___default()(time + ' Z').utc().local().format('MMMM Do YYYY, h:mm:ss A');
+      return moment_timezone__WEBPACK_IMPORTED_MODULE_1___default()(time + " Z").utc().local().format("MMMM Do YYYY, h:mm:ss A");
     },
 
     /**
@@ -59913,7 +60008,7 @@ __webpack_require__.r(__webpack_exports__);
      * Show an error message.
      */
     alertError: function alertError(message) {
-      this.$root.alert.type = 'error';
+      this.$root.alert.type = "error";
       this.$root.alert.autoClose = false;
       this.$root.alert.message = message;
     },
@@ -59922,7 +60017,7 @@ __webpack_require__.r(__webpack_exports__);
      * Show a success message.
      */
     alertSuccess: function alertSuccess(message, autoClose) {
-      this.$root.alert.type = 'success';
+      this.$root.alert.type = "success";
       this.$root.alert.autoClose = autoClose;
       this.$root.alert.message = message;
     },
@@ -59931,7 +60026,7 @@ __webpack_require__.r(__webpack_exports__);
      * Show confirmation message.
      */
     alertConfirm: function alertConfirm(message, success, failure) {
-      this.$root.alert.type = 'confirmation';
+      this.$root.alert.type = "confirmation";
       this.$root.alert.autoClose = false;
       this.$root.alert.message = message;
       this.$root.alert.confirmationProceed = success;
@@ -60177,15 +60272,15 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ([{
-  path: '/',
-  redirect: '/commands'
+  path: "/",
+  redirect: "/commands"
 }, {
-  path: '/commands/:id',
-  name: 'command-preview',
+  path: "/commands/:id",
+  name: "command-preview",
   component: __webpack_require__(/*! ./screens/commands/preview */ "./resources/js/screens/commands/preview.vue")["default"]
 }, {
-  path: '/commands',
-  name: 'commands',
+  path: "/commands",
+  name: "commands",
   component: __webpack_require__(/*! ./screens/commands/index */ "./resources/js/screens/commands/index.vue")["default"]
 }]);
 
