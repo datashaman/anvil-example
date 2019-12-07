@@ -46298,7 +46298,7 @@ var render = function() {
                       [
                         _vm._l(slotProps.entry.content.form, function(field) {
                           return [
-                            field.acceptValue
+                            field.type == "argument" || field.acceptValue
                               ? _c("div", { staticClass: "form-group" }, [
                                   _c("label", { attrs: { for: field.name } }, [
                                     _vm._v(_vm._s(field.name))
@@ -46323,7 +46323,10 @@ var render = function() {
                                       )
                                     : _vm._e()
                                 ])
-                              : _c("div", { staticClass: "form-check" }, [
+                              : _vm._e(),
+                            _vm._v(" "),
+                            field.type == "option" && !field.acceptValue
+                              ? _c("div", { staticClass: "form-check" }, [
                                   _c("input", {
                                     staticClass: "form-check-input",
                                     attrs: { type: "checkbox", id: field.name }
@@ -46338,6 +46341,7 @@ var render = function() {
                                     [_vm._v(_vm._s(field.name))]
                                   )
                                 ])
+                              : _vm._e()
                           ]
                         }),
                         _vm._v(" "),
