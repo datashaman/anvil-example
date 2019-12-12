@@ -11,8 +11,8 @@
 |
  */
 
-Broadcast::channel('command.inspire', function ($user) {
-    return true;
+Broadcast::channel('command.*', function ($user) {
+    return (bool) $user;
 });
 
 Broadcast::channel('App.User.{id}', function ($user, $id) {

@@ -2244,19 +2244,33 @@ __webpack_require__.r(__webpack_exports__);
       currentTab: 'terminal'
     };
   },
+  mounted: function mounted() {
+    var _this = this;
+
+    setTimeout(function () {
+      var terminal = new xterm__WEBPACK_IMPORTED_MODULE_1__["Terminal"]();
+      var channel = 'command.' + _this.entry.content.command;
+      console.log('Listening to channel ' + channel);
+      window.Echo["private"](channel).listen('.Datashaman\\Anvil\\AnvilOutput', function (e) {
+        console.log('Received', e);
+        terminal.write(e.message + (e.newline ? "\r\n" : ''));
+      });
+      terminal.open(_this.$refs.terminal);
+      terminal.resize(80, 25);
+      terminal.clear();
+    }, 250);
+  },
   methods: {
     handleSubmit: function handleSubmit(evt) {
+      var _this2 = this;
+
       var url = window.Anvil.routes.runs_store.replace('%command%', this.entry.content.command);
-      var channel = 'command.' + this.entry.content.command;
-      window.Echo["private"](channel).listen('.Datashaman\\Anvil\\AnvilOutput', function (e) {
-        console.log(e);
-      });
       axios__WEBPACK_IMPORTED_MODULE_0___default()({
         method: 'post',
         url: url,
         data: this.form
       }).then(function (response) {
-        console.log(response.data);
+        _this2.currentTab = 'terminal';
       })["catch"](console.error);
     }
   }
@@ -56163,60 +56177,6 @@ var render = function() {
                     "a",
                     {
                       staticClass: "nav-link",
-                      class: { active: _vm.currentTab == "arguments" },
-                      attrs: { href: "#" },
-                      on: {
-                        click: function($event) {
-                          $event.preventDefault()
-                          _vm.currentTab = "arguments"
-                        }
-                      }
-                    },
-                    [_vm._v("Arguments")]
-                  )
-                ]),
-                _vm._v(" "),
-                _c("li", { staticClass: "nav-item" }, [
-                  _c(
-                    "a",
-                    {
-                      staticClass: "nav-link",
-                      class: { active: _vm.currentTab == "options" },
-                      attrs: { href: "#" },
-                      on: {
-                        click: function($event) {
-                          $event.preventDefault()
-                          _vm.currentTab = "options"
-                        }
-                      }
-                    },
-                    [_vm._v("Options")]
-                  )
-                ]),
-                _vm._v(" "),
-                _c("li", { staticClass: "nav-item" }, [
-                  _c(
-                    "a",
-                    {
-                      staticClass: "nav-link",
-                      class: { active: _vm.currentTab == "form-definition" },
-                      attrs: { href: "#" },
-                      on: {
-                        click: function($event) {
-                          $event.preventDefault()
-                          _vm.currentTab = "form-definition"
-                        }
-                      }
-                    },
-                    [_vm._v("Form Definition")]
-                  )
-                ]),
-                _vm._v(" "),
-                _c("li", { staticClass: "nav-item" }, [
-                  _c(
-                    "a",
-                    {
-                      staticClass: "nav-link",
                       class: { active: _vm.currentTab == "form" },
                       attrs: { href: "#" },
                       on: {
@@ -56250,69 +56210,6 @@ var render = function() {
               ]),
               _vm._v(" "),
               _c("div", [
-                _c(
-                  "div",
-                  {
-                    directives: [
-                      {
-                        name: "show",
-                        rawName: "v-show",
-                        value: _vm.currentTab == "arguments",
-                        expression: "currentTab == 'arguments'"
-                      }
-                    ],
-                    staticClass: "code-bg p-4 mb-0 text-white"
-                  },
-                  [
-                    _c("vue-json-pretty", {
-                      attrs: { data: slotProps.entry.content.arguments }
-                    })
-                  ],
-                  1
-                ),
-                _vm._v(" "),
-                _c(
-                  "div",
-                  {
-                    directives: [
-                      {
-                        name: "show",
-                        rawName: "v-show",
-                        value: _vm.currentTab == "options",
-                        expression: "currentTab == 'options'"
-                      }
-                    ],
-                    staticClass: "code-bg p-4 mb-0 text-white"
-                  },
-                  [
-                    _c("vue-json-pretty", {
-                      attrs: { data: slotProps.entry.content.options }
-                    })
-                  ],
-                  1
-                ),
-                _vm._v(" "),
-                _c(
-                  "div",
-                  {
-                    directives: [
-                      {
-                        name: "show",
-                        rawName: "v-show",
-                        value: _vm.currentTab == "form-definition",
-                        expression: "currentTab == 'form-definition'"
-                      }
-                    ],
-                    staticClass: "code-bg p-4 mb-0 text-white"
-                  },
-                  [
-                    _c("vue-json-pretty", {
-                      attrs: { data: slotProps.entry.content.form }
-                    })
-                  ],
-                  1
-                ),
-                _vm._v(" "),
                 _c(
                   "div",
                   {
@@ -56490,7 +56387,7 @@ var render = function() {
                         expression: "currentTab == 'terminal'"
                       }
                     ],
-                    staticClass: "p-4 text-white"
+                    staticClass: "p-4"
                   },
                   [_c("div", { ref: "terminal" })]
                 )
@@ -71676,6 +71573,11 @@ __webpack_require__.r(__webpack_exports__);
 
 __webpack_require__(/*! bootstrap */ "./node_modules/bootstrap/dist/js/bootstrap.js");
 
+window.io = __webpack_require__(/*! socket.io-client */ "./node_modules/socket.io-client/lib/index.js");
+window.Echo = new laravel_echo__WEBPACK_IMPORTED_MODULE_7__["default"]({
+  broadcaster: "socket.io",
+  host: window.location.hostname + ":6001"
+});
 var token = document.head.querySelector('meta[name="csrf-token"]');
 
 if (token) {
@@ -71717,12 +71619,6 @@ new vue__WEBPACK_IMPORTED_MODULE_0___default.a({
       }
     };
   }
-});
-console.log("here");
-window.io = __webpack_require__(/*! socket.io-client */ "./node_modules/socket.io-client/lib/index.js");
-window.Echo = new laravel_echo__WEBPACK_IMPORTED_MODULE_7__["default"]({
-  broadcaster: "socket.io",
-  host: window.location.hostname + ":6001"
 });
 
 /***/ }),
